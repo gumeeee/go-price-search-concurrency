@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"price-search/internal/fetcher"
+	"price-search/internal/models"
 	"price-search/internal/processor"
 	"time"
 )
@@ -10,7 +11,7 @@ import (
 func main() {
 	start := time.Now()
 
-	priceChannel := make(chan float64)
+	priceChannel := make(chan models.PriceDetail)
 	done := make(chan bool)
 
 	go fetcher.FetchPrices(priceChannel)
