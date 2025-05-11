@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"price-search/internal/fetcher"
 	"price-search/internal/processor"
-	"sync"
 	"time"
 )
 
@@ -12,20 +11,12 @@ func main() {
 	start := time.Now()
 
 	priceChannel := make(chan float64)
-	var consumerWg sync.WaitGroup
-
-	consumerWg.Add(1)
-
-	go func() {
-		defer consumerWg.Done()
-		processor.ShowPricesAndAVG(priceChannel)
-	}()
+	done := make(chan bool)
 
 	go fetcher.FetchPrices(priceChannel)
+	go processor.ShowPricesAndAVG(priceChannel, done)
 
-	consumerWg.Wait()
-
-	fmt.Println("Consumer finished.")
+	<-done
 
 	fmt.Printf("\nTempo Total: %s", time.Since(start))
 }

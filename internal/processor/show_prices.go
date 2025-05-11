@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-func ShowPricesAndAVG(priceChannel chan float64) {
+func ShowPricesAndAVG(priceChannel <-chan float64, done chan<- bool) {
 	var totalPrice float64
 	countPrices := 0.0
 	for price := range priceChannel {
@@ -13,5 +13,5 @@ func ShowPricesAndAVG(priceChannel chan float64) {
 		avgPrice := totalPrice / countPrices
 		fmt.Printf("Price received: R$ %.2f | Average Price at the moment: R$ %.2f\n", price, avgPrice)
 	}
-	fmt.Println("Consumer goroutine finished. Channel closed.")
+	done <- true
 }
