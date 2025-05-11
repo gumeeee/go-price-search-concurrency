@@ -2,22 +2,46 @@ package fetcher
 
 import (
 	"math/rand"
+	"sync"
 	"time"
 )
 
-func FetchPriceFromFirstSite() float64 {
+func FetchPrices(priceChannel chan<- float64) {
+	var wg sync.WaitGroup
+	wg.Add(3)
+
+	go func() {
+		defer wg.Done()
+		priceChannel <- fetchPriceFromFirstSite()
+	}()
+
+	go func() {
+		defer wg.Done()
+		priceChannel <- fetchPriceFromSecondSite()
+	}()
+
+	go func() {
+		defer wg.Done()
+		priceChannel <- fetchPriceFromThirdSite()
+	}()
+
+	wg.Wait()
+	close(priceChannel)
+}
+
+func fetchPriceFromFirstSite() float64 {
 	time.Sleep(1 * time.Second)
 
 	return rand.Float64() * 100
 }
 
-func FetchPriceFromSecondSite() float64 {
+func fetchPriceFromSecondSite() float64 {
 	time.Sleep(3 * time.Second)
 
 	return rand.Float64() * 100
 }
 
-func FetchPriceFromThirdSite() float64 {
+func fetchPriceFromThirdSite() float64 {
 	time.Sleep(2 * time.Second)
 
 	return rand.Float64() * 100

@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"price-search/internal/fetcher"
+	"price-search/internal/processor"
 	"sync"
 	"time"
 )
@@ -11,37 +12,20 @@ func main() {
 	start := time.Now()
 
 	priceChannel := make(chan float64)
-	var wg sync.WaitGroup
-	wg.Add(3)
+	var consumerWg sync.WaitGroup
+
+	consumerWg.Add(1)
 
 	go func() {
-		var totalPrice float64
-		countPrices := 0.0
-		for price := range priceChannel {
-			totalPrice += price
-			countPrices++
-			avgPrice := totalPrice / countPrices
-			fmt.Printf("Price received: R$ %.2f | Average Price at the moment: R$ %.2f\n", price, avgPrice)
-		}
+		defer consumerWg.Done()
+		processor.ShowPricesAndAVG(priceChannel)
 	}()
 
-	go func() {
-		defer wg.Done()
-		priceChannel <- fetcher.FetchPriceFromFirstSite()
-	}()
+	go fetcher.FetchPrices(priceChannel)
 
-	go func() {
-		defer wg.Done()
-		priceChannel <- fetcher.FetchPriceFromSecondSite()
-	}()
+	consumerWg.Wait()
 
-	go func() {
-		defer wg.Done()
-		priceChannel <- fetcher.FetchPriceFromThirdSite()
-	}()
-
-	wg.Wait()
-	close(priceChannel)
+	fmt.Println("Consumer finished.")
 
 	fmt.Printf("\nTempo Total: %s", time.Since(start))
 }
